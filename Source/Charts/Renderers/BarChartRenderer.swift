@@ -77,11 +77,19 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             for i in stride(from: 0, to: barData.dataSetCount, by: 1)
             {
                 let set = barData.dataSets[i] as! IBarChartDataSet
-                let size = set.entryCount * (set.isStacked ? set.stackSize : 1)
+                
+/////////////////////////////// Hattrick-it changes for special use /////////////////////////////////////////////
+                var entries = 0
+                for index in stride(from: 0,  to: set.entryCount, by: 1) {
+                    entries += (set.entryForIndex(index)?.data as![Float] ).count / 2
+                }
+                
+                let size = set.entryCount * (set.isStacked ? set.stackSize : 1) * entries
                 if _buffers[i].rects.count != size
                 {
                     _buffers[i].rects = [CGRect](repeating: CGRect(), count: size)
                 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             }
         }
         else
@@ -105,7 +113,6 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
         
         let isInverted = dataProvider.isInverted(axis: dataSet.axisDependency)
         let phaseY = animator.phaseY
-        var barRect = CGRect()
         var x: Double
         var y: Double
         
@@ -118,102 +125,116 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             x = e.x
             y = e.y
 
-            if !containsStacks || vals == nil
-            {
-                let left = CGFloat(x - barWidthHalf)
-                let right = CGFloat(x + barWidthHalf)
-                var top = isInverted
-                    ? (y <= 0.0 ? CGFloat(y) : 0)
-                    : (y >= 0.0 ? CGFloat(y) : 0)
-                var bottom = isInverted
-                    ? (y >= 0.0 ? CGFloat(y) : 0)
-                    : (y <= 0.0 ? CGFloat(y) : 0)
-
-                // multiply the height of the rect with the phase
-                if top > 0
+/////////////////////////////// Hattrick-it changes for special use /////////////////////////////////////////////
+            let data = e.data as! [Float]
+            for index in stride(from: 0, to: data.count, by: 2) {
+            
+                let startAt = CGFloat(data[index])
+                let endsAt = CGFloat(data[index + 1])
+                if !containsStacks || vals == nil
                 {
-                    top *= CGFloat(phaseY)
-                }
-                else
-                {
-                    bottom *= CGFloat(phaseY)
-                }
-
-                // When drawing with an auto calculated y-axis minimum, the renderer actually draws each bar from 0
-                // to the required value. This drawn bar is then clipped to the visible chart rect in BarLineChartViewBase's draw(rect:) using clipDataToContent.
-                // While this works fine when calculating the bar rects for drawing, it causes the accessibilityFrames to be oversized in some cases.
-                // This offset attempts to undo that unnecessary drawing when calculating barRects, particularly when not using custom axis minima.
-                // This allows the minimum to still be visually non zero, but the rects are only drawn where necessary.
-                // This offset calculation also avoids cases where there are positive/negative values mixed, since those won't need this offset.
-                var offset: CGFloat = 0.0
-                if let offsetView = dataProvider as? BarChartView {
-
-                    let offsetAxis = offsetView.leftAxis.isEnabled ? offsetView.leftAxis : offsetView.rightAxis
-
-                    if barData.yMin.sign != barData.yMax.sign { offset = 0.0 }
-                    else if !offsetAxis._customAxisMin {
-                        offset = CGFloat(offsetAxis.axisMinimum)
-                    }
-                }
-
-                barRect.origin.x = left
-                barRect.size.width = right - left
-                barRect.origin.y = top
-                barRect.size.height = bottom == top ? 0 : bottom - top + offset
-
-                buffer.rects[bufferIndex] = barRect
-                bufferIndex += 1
-            }
-            else
-            {
-                var posY = 0.0
-                var negY = -e.negativeSum
-                var yStart = 0.0
-                
-                // fill the stack
-                for k in 0 ..< vals!.count
-                {
-                    let value = vals![k]
+                    let left = CGFloat(x - barWidthHalf)
+                    let right = CGFloat(x + barWidthHalf)
+                    var top = isInverted ? startAt : endsAt
+                    var bottom = isInverted ? endsAt : startAt
                     
-                    if value == 0.0 && (posY == 0.0 || negY == 0.0)
+                    //                    var top = isInverted
+//                        ? (endsAt <= 0.0 ? CGFloat(endsAt) : 0)
+//                        : (endsAt >= 0.0 ? CGFloat(endsAt) : 0)
+//                    var bottom = isInverted
+//                        ? (startAt >= 0.0 ? CGFloat(startAt) : 0)
+//                        : (startAt <= 0.0 ? CGFloat(startAt) : 0)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                    // multiply the height of the rect with the phase
+                    if top > 0
                     {
-                        // Take care of the situation of a 0.0 value, which overlaps a non-zero bar
-                        y = value
-                        yStart = y
-                    }
-                    else if value >= 0.0
-                    {
-                        y = posY
-                        yStart = posY + value
-                        posY = yStart
+                        top *= CGFloat(phaseY)
                     }
                     else
                     {
-                        y = negY
-                        yStart = negY + abs(value)
-                        negY += abs(value)
+                        bottom *= CGFloat(phaseY)
                     }
-                    
-                    let left = CGFloat(x - barWidthHalf)
-                    let right = CGFloat(x + barWidthHalf)
-                    var top = isInverted
-                        ? (y <= yStart ? CGFloat(y) : CGFloat(yStart))
-                        : (y >= yStart ? CGFloat(y) : CGFloat(yStart))
-                    var bottom = isInverted
-                        ? (y >= yStart ? CGFloat(y) : CGFloat(yStart))
-                        : (y <= yStart ? CGFloat(y) : CGFloat(yStart))
-                    
-                    // multiply the height of the rect with the phase
-                    top *= CGFloat(phaseY)
-                    bottom *= CGFloat(phaseY)
-                    
+
+                    // When drawing with an auto calculated y-axis minimum, the renderer actually draws each bar from 0
+                    // to the required value. This drawn bar is then clipped to the visible chart rect in BarLineChartViewBase's draw(rect:) using clipDataToContent.
+                    // While this works fine when calculating the bar rects for drawing, it causes the accessibilityFrames to be oversized in some cases.
+                    // This offset attempts to undo that unnecessary drawing when calculating barRects, particularly when not using custom axis minima.
+                    // This allows the minimum to still be visually non zero, but the rects are only drawn where necessary.
+                    // This offset calculation also avoids cases where there are positive/negative values mixed, since those won't need this offset.
+                    var offset: CGFloat = 0.0
+                    if let offsetView = dataProvider as? BarChartView {
+
+                        let offsetAxis = offsetView.leftAxis.isEnabled ? offsetView.leftAxis : offsetView.rightAxis
+
+                        if barData.yMin.sign != barData.yMax.sign { offset = 0.0 }
+                        else if !offsetAxis._customAxisMin {
+                            offset = CGFloat(offsetAxis.axisMinimum)
+                        }
+                    }
+
+                    var barRect = CGRect()
                     barRect.origin.x = left
                     barRect.size.width = right - left
                     barRect.origin.y = top
-                    barRect.size.height = bottom - top
-                    
+                    barRect.size.height = (bottom == top ? 0 : bottom - top + offset)
+
                     buffer.rects[bufferIndex] = barRect
                     bufferIndex += 1
+                }
+                else
+                {
+                    var posY = 0.0
+                    var negY = -e.negativeSum
+                    var yStart = 0.0
+                    
+                    // fill the stack
+                    for k in 0 ..< vals!.count
+                    {
+                        let value = vals![k]
+                        
+                        if value == 0.0 && (posY == 0.0 || negY == 0.0)
+                        {
+                            // Take care of the situation of a 0.0 value, which overlaps a non-zero bar
+                            y = value
+                            yStart = y
+                        }
+                        else if value >= 0.0
+                        {
+                            y = posY
+                            yStart = posY + value
+                            posY = yStart
+                        }
+                        else
+                        {
+                            y = negY
+                            yStart = negY + abs(value)
+                            negY += abs(value)
+                        }
+                        
+                        let left = CGFloat(x - barWidthHalf)
+                        let right = CGFloat(x + barWidthHalf)
+                        var top = isInverted
+                            ? (y <= yStart ? CGFloat(y) : CGFloat(yStart))
+                            : (y >= yStart ? CGFloat(y) : CGFloat(yStart))
+                        var bottom = isInverted
+                            ? (y >= yStart ? CGFloat(y) : CGFloat(yStart))
+                            : (y <= yStart ? CGFloat(y) : CGFloat(yStart))
+                        
+                        // multiply the height of the rect with the phase
+                        top *= CGFloat(phaseY)
+                        bottom *= CGFloat(phaseY)
+                        
+                        var barRect = CGRect()
+                        
+                        barRect.origin.x = left
+                        barRect.size.width = right - left
+                        barRect.origin.y = top
+                        barRect.size.height = bottom - top
+                        
+                        buffer.rects[bufferIndex] = barRect
+                        bufferIndex += 1
+                    }
                 }
             }
         }
@@ -381,16 +402,18 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             // Create and append the corresponding accessibility element to accessibilityOrderedElements
             if let chart = dataProvider as? BarChartView
             {
-                let element = createAccessibleElement(withIndex: j,
-                                                      container: chart,
-                                                      dataSet: dataSet,
-                                                      dataSetIndex: index,
-                                                      stackSize: stackSize)
-                { (element) in
-                    element.accessibilityFrame = barRect
-                }
-
-                accessibilityOrderedElements[j/stackSize].append(element)
+                
+                // fixme
+//                let element = createAccessibleElement(withIndex: j,
+//                                                      container: chart,
+//                                                      dataSet: dataSet,
+//                                                      dataSetIndex: index,
+//                                                      stackSize: stackSize)
+//                { (element) in
+//                    element.accessibilityFrame = barRect
+//                }
+//
+//                accessibilityOrderedElements[j/stackSize].append(element)
             }
         }
         

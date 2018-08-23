@@ -46,22 +46,17 @@ class MultipleBarChartViewController: DemoBaseViewController {
         marker.minimumSize = CGSize(width: 80, height: 40)
         chartView.marker = marker
         
-        let l = chartView.legend
-        l.horizontalAlignment = .right
-        l.verticalAlignment = .top
-        l.orientation = .vertical
-        l.drawInside = true
-        l.font = .systemFont(ofSize: 8, weight: .light)
-        l.yOffset = 10
-        l.xOffset = 10
-        l.yEntrySpace = 0
-//        chartView.legend = l
 
         let xAxis = chartView.xAxis
         xAxis.labelFont = .systemFont(ofSize: 10, weight: .light)
         xAxis.granularity = 1
         xAxis.centerAxisLabelsEnabled = true
         xAxis.valueFormatter = IntAxisValueFormatter()
+/////////////////////////////// Hattrick-it changes for special use ////////////////////////////////////////////
+        xAxis.axisMinimum = 0
+        xAxis.axisMaximum = 7
+        xAxis.labelCount = 7
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
         let leftAxisFormatter = NumberFormatter()
         leftAxisFormatter.maximumFractionDigits = 1
@@ -71,71 +66,117 @@ class MultipleBarChartViewController: DemoBaseViewController {
         leftAxis.valueFormatter = LargeValueFormatter()
         leftAxis.spaceTop = 0.35
         leftAxis.axisMinimum = 0
+////////////////////////////// Hattrick-it changes for special use ////////////////////////////////////////////
+        leftAxis.axisMaximum = 24
+        leftAxis.labelCount = 24
+        leftAxis.inverted = true
         
+        chartView.pinchZoomEnabled = false
+        chartView.legend.enabled = false
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
         chartView.rightAxis.enabled = false
-        
-        sliderX.value = 10
-        sliderY.value = 100
-        slidersValueChanged(nil)
+     
+////////////////////////////// Hattrick-it changes for special use ////////////////////////////////////////////
+        setup1Sets()
+//        setup2Sets()
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
-    
-    override func updateChartData() {
-        if self.shouldHideData {
-            chartView.data = nil
-            return
-        }
-        
-        self.setDataCount(Int(sliderX.value), range: UInt32(sliderY.value))
-    }
-    
-    func setDataCount(_ count: Int, range: UInt32) {
-        let groupSpace = 0.08
-        let barSpace = 0.03
-        let barWidth = 0.2
-        // (0.2 + 0.03) * 4 + 0.08 = 1.00 -> interval per "group"
 
-        let randomMultiplier = range * 100000
-        let groupCount = count + 1
-        let startYear = 1980
-        let endYear = startYear + groupCount
+////////////////////////////// Hattrick-it changes for special use ////////////////////////////////////////////
+    func setup2Sets() {
+        let groupSpace = 0.08
+        let barSpace = 0.06
+        let barWidth = 0.4
+        // (0.2 + 0.03) * 4 + 0.08 = 1.00 -> interval per "group"
         
-        let block: (Int) -> BarChartDataEntry = { (i) -> BarChartDataEntry in
-            return BarChartDataEntry(x: Double(i), y: Double(arc4random_uniform(randomMultiplier)))
-        }
-        let yVals1 = (startYear ..< endYear).map(block)
-        let yVals2 = (startYear ..< endYear).map(block)
-        let yVals3 = (startYear ..< endYear).map(block)
-        let yVals4 = (startYear ..< endYear).map(block)
+        let slotsReq: [Float] = [10, 20]
+        let slotsReq2: [Float] = [14, 24]
+        let slots1: [Float] = [10, 15, 18, 23]
+        let slots2: [Float] = [2, 15, 18, 23]
+        let slots3: [Float] = [8, 16]
+        let slots4: [Float] = [16, 20]
+        let slots5: [Float] = [10, 15, 18, 20.30]
+        let slots6: [Float] = [6, 15, 18, 24]
+        let slots7: [Float] = [12, 17, 18, 22.30]
+        let sun1 = BarChartDataEntry(x: 0, y: 24, data: slots1 as AnyObject)
+        let sun2 = BarChartDataEntry(x: 0, y: 24, data: slotsReq as AnyObject)
+        let mon1 = BarChartDataEntry(x: 1, y: 24, data: slots2 as AnyObject)
+        let mon2 = BarChartDataEntry(x: 1, y: 24, data: slotsReq as AnyObject)
+        let tue1 = BarChartDataEntry(x: 2, y: 24, data: slots3 as AnyObject)
+        let tue2 = BarChartDataEntry(x: 2, y: 24, data: slotsReq2 as AnyObject)
+        let wed1 = BarChartDataEntry(x: 3, y: 24, data: slots4 as AnyObject)
+        let wed2 = BarChartDataEntry(x: 3, y: 24, data: slotsReq as AnyObject)
+        let thu1 = BarChartDataEntry(x: 4, y: 24, data: slots5 as AnyObject)
+        let thu2 = BarChartDataEntry(x: 4, y: 24, data: slotsReq as AnyObject)
+        let fri1 = BarChartDataEntry(x: 5, y: 24, data: slots6 as AnyObject)
+        let fri2 = BarChartDataEntry(x: 5, y: 24, data: slotsReq2 as AnyObject)
+        let sat1 = BarChartDataEntry(x: 6, y: 24, data: slots7 as AnyObject)
+        let sat2 = BarChartDataEntry(x: 6, y: 24, data: slotsReq as AnyObject)
+        
+        let yVals1 = [sun1, mon1, tue1, wed1, thu1, fri1, sat1]
+        let yVals2 = [sun2, mon2, tue2, wed2, thu2, fri2, sat2]
         
         let set1 = BarChartDataSet(values: yVals1, label: "Company A")
-        set1.setColor(UIColor(red: 104/255, green: 241/255, blue: 175/255, alpha: 1))
+        set1.setColor(UIColor(red: 48/255, green: 111/255, blue: 224/255, alpha: 1))
+        set1.drawValuesEnabled = false
         
         let set2 = BarChartDataSet(values: yVals2, label: "Company B")
-        set2.setColor(UIColor(red: 164/255, green: 228/255, blue: 251/255, alpha: 1))
+        set2.setColor(UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1))
+        set2.drawValuesEnabled = false
         
-        let set3 = BarChartDataSet(values: yVals3, label: "Company C")
-        set3.setColor(UIColor(red: 242/255, green: 247/255, blue: 158/255, alpha: 1))
-        
-        let set4 = BarChartDataSet(values: yVals4, label: "Company D")
-        set4.setColor(UIColor(red: 255/255, green: 102/255, blue: 0/255, alpha: 1))
-        
-        let data = BarChartData(dataSets: [set1, set2, set3, set4])
+        let data = BarChartData(dataSets: [set1, set2])
         data.setValueFont(.systemFont(ofSize: 10, weight: .light))
         data.setValueFormatter(LargeValueFormatter())
         
         // specify the width each bar should have
         data.barWidth = barWidth
-
-        // restrict the x-axis range
-        chartView.xAxis.axisMinimum = Double(startYear)
         
-        // groupWidthWithGroupSpace(...) is a helper that calculates the width each group needs based on the provided parameters
-        chartView.xAxis.axisMaximum = Double(startYear) + data.groupWidth(groupSpace: groupSpace, barSpace: barSpace) * Double(groupCount)
         
-        data.groupBars(fromX: Double(startYear), groupSpace: groupSpace, barSpace: barSpace)
-
+        data.groupBars(fromX: Double(0), groupSpace: groupSpace, barSpace: barSpace)
+        
         chartView.data = data
     }
+
+    
+    func setup1Sets() {
+    
+        let slots1: [Float] = [10, 15, 18, 23]
+        let slots2: [Float] = [2, 15, 18, 23]
+        let slots3: [Float] = [8, 16]
+        let slots4: [Float] = [16, 20]
+        let slots5: [Float] = [10, 15, 18, 20.30]
+        let slots6: [Float] = [6, 15, 18, 24]
+        let slots7: [Float] = [12, 17, 18, 22.30]
+        let sun1 = BarChartDataEntry(x: 0, y: 24, data: slots1 as AnyObject)
+        let mon1 = BarChartDataEntry(x: 1, y: 24, data: slots2 as AnyObject)
+        let tue1 = BarChartDataEntry(x: 2, y: 24, data: slots3 as AnyObject)
+        let wed1 = BarChartDataEntry(x: 3, y: 24, data: slots4 as AnyObject)
+        let thu1 = BarChartDataEntry(x: 4, y: 24, data: slots5 as AnyObject)
+        let fri1 = BarChartDataEntry(x: 5, y: 24, data: slots6 as AnyObject)
+        let sat1 = BarChartDataEntry(x: 6, y: 24, data: slots7 as AnyObject)
+        
+        let yVals1 = [sun1, mon1, tue1, wed1, thu1, fri1, sat1]
+        
+        let set1 = BarChartDataSet(values: yVals1, label: "Company A")
+        set1.setColor(UIColor(red: 48/255, green: 111/255, blue: 224/255, alpha: 1))
+        set1.drawValuesEnabled = false
+        
+        let data = BarChartData(dataSets: [set1])
+        data.setValueFont(.systemFont(ofSize: 10, weight: .light))
+        data.setValueFormatter(LargeValueFormatter())
+        
+        let groupSpace = 0.1
+        let barSpace = 0.6
+        let barWidth = 0.3
+        
+        // specify the width each bar should have
+        data.barWidth = barWidth
+        data.groupBars(fromX: Double(0), groupSpace: groupSpace, barSpace: barSpace)
+        
+        chartView.setVisibleXRangeMaximum(6.99)
+        chartView.data = data
+    }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     override func optionTapped(_ option: Option) {
         super.handleOption(option, forChartView: chartView)
@@ -143,12 +184,6 @@ class MultipleBarChartViewController: DemoBaseViewController {
     
     // MARK: - Actions
     @IBAction func slidersValueChanged(_ sender: Any?) {
-        let startYear = 1980
-        let endYear = startYear + Int(sliderX.value)
-
-        sliderTextX.text = "\(startYear)-\(endYear)"
-        sliderTextY.text = "\(Int(sliderY.value))"
-        
-        self.updateChartData()
+////////////////////////////// Hattrick-it changes for special use ////////////////////////////////////////////
     }
 }
